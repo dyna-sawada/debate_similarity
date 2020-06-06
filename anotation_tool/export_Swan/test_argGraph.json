@@ -1,0 +1,92 @@
+{
+  "document": {
+    "annotations": {
+      "annotation": [
+        {
+          "id": "50",
+          "start": "33",
+          "end": "74",
+          "spanType": "Major claim"
+        },
+        {
+          "id": "53",
+          "start": "643",
+          "end": "742",
+          "spanType": "Premise",
+          "labels": {
+            "@labelSetName": "label",
+            "label": "proponent"
+          }
+        },
+        {
+          "id": "54",
+          "start": "744",
+          "end": "871",
+          "spanType": "Premise",
+          "labels": {
+            "@labelSetName": "label",
+            "label": "proponent"
+          }
+        },
+        {
+          "id": "56",
+          "start": "569",
+          "end": "625",
+          "spanType": "Claim",
+          "labels": {
+            "@labelSetName": "label",
+            "label": "proponent"
+          }
+        },
+        {
+          "id": "55",
+          "start": "3361",
+          "end": "3435",
+          "spanType": "Premise",
+          "labels": {
+            "@labelSetName": "label",
+            "label": "opponent"
+          }
+        },
+        {
+          "id": "52",
+          "start": "485",
+          "end": "534",
+          "spanType": "Claim",
+          "labels": {
+            "@labelSetName": "label",
+            "label": "proponent"
+          }
+        }
+      ]
+    },
+    "links": {
+      "link": [
+        {
+          "from": "54",
+          "to": "56",
+          "labels": {
+            "@labelSetName": "link",
+            "label": "support"
+          }
+        },
+        {
+          "from": "53",
+          "to": "56",
+          "labels": {
+            "@labelSetName": "link",
+            "label": "support"
+          }
+        },
+        {
+          "from": "55",
+          "to": "56",
+          "labels": {
+            "@labelSetName": "link",
+            "label": "rebuttal"
+          }
+        }
+      ]
+    }
+  }
+}
