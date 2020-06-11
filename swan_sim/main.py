@@ -13,7 +13,7 @@ from gensim.scripts.glove2word2vec import glove2word2vec
 from sklearn.metrics.pairwise import cosine_similarity
 from sklearn.decomposition import TruncatedSVD
 from KB_data import KnowledgeBaseData
-from embeddings import multiplication_sims
+from embeddings import multiplication_sims, calculate_similarities_sif, remove_first_principal_component
 
 
 
