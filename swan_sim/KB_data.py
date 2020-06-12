@@ -53,23 +53,34 @@ class KnowledgeBaseData:
         # make FB dictionaly
         << in : xml, span_text_dict >>
         << out : FB_dict >>
-        FB_dict : {to_id : FB_text}
+        FB_dict : {FB_text : [to_texts]}
         """
         span_text_dict, _ = self.get_span_text_info()
-        FB_dict = {}
+
+        fb_dict = {}
+
+        fb_labels = ["GP", "GP-edge", "BP", "BP-edge"]
+        fb_from_texts = [None, None, None, None]
+        fb_to_texts = [[], [], [], []]
+
         for value in self.root.iter('link'):
             from_id = int(value.find('from').text)
             to_id = int(value.find('to').text)
             label = value.find('.//label')
             relation_type = (label.text if label is not None else '')
-            fb_labels = ["GP", "BP", "GP-edge", "BP-edge"]
+
             if relation_type in fb_labels:
-                FB_dict[to_id] = span_text_dict[from_id]
-                continue
+                fb_id = fb_labels.index(relation_type)
+                fb_from_texts[fb_id] = span_text_dict[from_id]
+                fb_to_texts[fb_id].append(span_text_dict[to_id])
             else:
                 continue
 
-        return FB_dict
+        for idx in range(len(fb_labels)):
+            if fb_from_texts[idx] is not None:
+                fb_dict[fb_from_texts[idx]] = fb_to_texts[idx]
+
+        return fb_dict
 
 
     def KB_data(self):
