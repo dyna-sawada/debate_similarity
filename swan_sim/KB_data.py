@@ -83,18 +83,17 @@ class KnowledgeBaseData:
         return fb_dict
 
 
-    def KB_data(self):
+    def make_KB_data(self):
         """
-        # make KB_data
+        # make KB data
         << in : xml, span_text_dict, FB_dict >>
         << out : KB_data >>
-        KB_data : [ [from_text, to_text, relation, FB_texts] ]
+        KB_data : [ [from_text], [to_text], [relation] ]
         """
         KB_data = []
         span_text_dict, _ = self.get_span_text_info()
-        FB_dict = self.get_FB_info()
+
         for value in self.root.iter('link'):
-            FB = []
             from_id = int(value.find('from').text)
             to_id = int(value.find('to').text)
             label = value.find('.//label')
@@ -103,18 +102,7 @@ class KnowledgeBaseData:
             fb_labels = ["GP", "BP", "GP-edge", "BP-edge"]
             if relation_type in fb_labels:
                 continue
-            else:
-                if from_id in FB_dict:
-                    if to_id in FB_dict:
-                        FB.append(FB_dict[from_id])
-                        FB.append(FB_dict[to_id])
-                    else:
-                        FB.append(FB_dict[from_id])
-                elif to_id in FB_dict:
-                    FB.append(FB_dict[to_id])
-                else:
-                    FB.append("None")
 
-            KB_data.append([span_text_dict[from_id], span_text_dict[to_id], relation_type, ",".join(FB)])
+            KB_data.append([span_text_dict[from_id], span_text_dict[to_id], relation_type])
 
         return KB_data

@@ -21,6 +21,7 @@ from embeddings import multiplication_sims, calculate_similarities_sif, remove_f
 def main():
     LO_span_texts_lists = []
     KB_datasets = []
+    FB_dict = {}
     with zipfile.ZipFile('./data_Swan/export_ArgGraph_.zip', 'r') as zip_data:
         filename_list = zip_data.namelist()
 
@@ -39,10 +40,13 @@ def main():
             KBClass = KnowledgeBaseData(xml, original_text)
             _, LO_span_texts_list = KBClass.get_span_text_info()
             LO_span_texts_lists += LO_span_texts_list
-            KB_data = KBClass.KB_data()
+            FB_dict.update(KBClass.get_FB_info())
+
+            KB_data = KBClass.make_KB_data()
             KB_datasets += KB_data
 
         word_freqs = Counter(LO_span_texts_lists)
+
 
         ## load pretrained embedding model
         #PATH_TO_GLOVE = "./data_model/glove.840B.300d.txt"
