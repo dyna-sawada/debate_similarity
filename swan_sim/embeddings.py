@@ -4,6 +4,7 @@ import numpy as np
 from sklearn.metrics.pairwise import cosine_similarity
 from sklearn.decomposition import TruncatedSVD
 import math
+import sister
 
 
 
@@ -17,13 +18,15 @@ def remove_first_principal_component(X):
 
 def calculate_similarities_sif(input_text, KB_texts, model, freqs={}, a=0.001):
     """
-    # SIF model
+    ## SIF model
+
     << in >>
     input_text : [text]
     a : parameter
     << out >>
     similarities : [sim1, sim2, ...]
     """
+
     total_freq = sum(freqs.values())
 
     embeddings = []
@@ -59,6 +62,7 @@ def multiplication_sims(input_data, KB_data, model, freqs):
     1. maximum value of calcuated similarities
     2. index of maximum value
     """
+
     ## set new data
     input_1 = re.sub(r'[,.!?:;"]', '', input_data[0]).lower().split()
     input_2 = re.sub(r'[,.!?:;"]', '', input_data[1]).lower().split()
@@ -72,3 +76,39 @@ def multiplication_sims(input_data, KB_data, model, freqs):
     multi_sims = from_sims * to_sims
 
     return np.max(multi_sims), np.argmax(multi_sims)
+
+
+def cal_sims_av_ft(input_data, KB_data):
+    """
+    ## calculate similarities by using SISTER (SImple SenTence EmbeddeR)
+
+    << in >>
+    << out >>
+    1. maximum value of calcuated similarities
+    2. index of maximum value
+    """
+
+    ## using sister
+    sentence_embedding = sister.MeanEmbedding(lang="en")
+
+    input_1 = re.sub(r'[,.!?:;"]', '', input_data[0]).lower()
+    input_2 = re.sub(r'[,.!?:;"]', '', input_data[1]).lower()
+    emb_input_1 = sentence_embedding(input_1)
+    emb_input_2 = sentence_embedding(input_2)
+
+    sims = []
+
+    for data_info in KB_data:
+        from_text_data = data_info[0]
+        to_text_data = data_info[1]
+
+        emb_from_text = sentence_embedding(from_text_data)
+        emb_to_text = sentence_embedding(to_text_data)
+
+        from_sim = cosine_similarity(emb_input_1.reshape(1,-1), emb_from_text.reshape(1,-1))
+        to_sim = cosine_similarity(emb_input_2.reshape(1,-1), emb_to_text.reshape(1,-1))
+
+        sim = from_sim * to_sim
+        sims.append(sim)
+
+    return np.max(sims), np.argmax(sims)

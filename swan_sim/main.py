@@ -13,7 +13,7 @@ from gensim.scripts.glove2word2vec import glove2word2vec
 from sklearn.metrics.pairwise import cosine_similarity
 from sklearn.decomposition import TruncatedSVD
 from KB_data import KnowledgeBaseData
-from embeddings import multiplication_sims, calculate_similarities_sif, remove_first_principal_component
+from embeddings import multiplication_sims, calculate_similarities_sif, remove_first_principal_component, cal_sims_av_ft
 
 
 
@@ -58,7 +58,8 @@ def main():
         input_data = ["if you do homework efficiently, you will have more free time",
               "There is no reason homework should be abolished"]
 
-        value, index = multiplication_sims(input_data, datasets, glove, word_freqs)
+        #value, index = multiplication_sims(input_data, datasets, glove, word_freqs)
+        value, index = cal_sims_av_ft(input_data, datasets)
         print(datasets[index])
 
 
@@ -66,7 +67,6 @@ if __name__ == "__main__":
     main()
 
 
-# >> ['what we learn at school is very significant and we often apply that knowledge to our favorite things to do',
- #'the most important work for students is study',
- #'support',
- #'生徒の一番の仕事は勉強、とスタンスをクリアにしたことがよかったです']
+# >> ['we can get more free time just by reducing the amount of our homework',
+#     'if homework were to be abolished we could have more free time',
+#     'undercut']
