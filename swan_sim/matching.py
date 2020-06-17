@@ -38,7 +38,7 @@ class MatchingADUs():
 
         cleaned_adu = re.sub(r'[,.!?:;"]', '', adu).lower()
 
-        return list(self.embbeding(cleaned_adu)[:200])
+        return list(self.embbeding(cleaned_adu))
 
 
     def get_matching_pair(self, parent_adu, child_adu, arg_graph):
