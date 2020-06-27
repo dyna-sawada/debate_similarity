@@ -6,12 +6,15 @@ import json
 import math
 import numpy as np
 import sister
-
+import emb_model
 
 
 class MatchingADUs():
-    def __init__(self):
-        self.embbeding = sister.MeanEmbedding(lang="en")
+    def __init__(self, args):
+        """
+        args : NAME of embedding model (sister or roberta)
+        """
+        self.args = args
 
 
     def cosine_similarity(self, vec1, vec2):
@@ -36,9 +39,13 @@ class MatchingADUs():
     	embedding (list of float): ADUのEmbedding
         """
 
-        cleaned_adu = re.sub(r'[,.!?:;"]', '', adu).lower()
+        if self.args == "roberta":
+            self.embedding = emb_model.RobertaEmbedding()
+        else:
+            self.embedding = sister.MeanEmbedding(lang="en")
+            adu = re.sub(r'[,.!?:;"]', '', adu).lower()
 
-        return list(self.embbeding(cleaned_adu))
+        return list(self.embedding(adu))
 
 
     def get_matching_pair(self, parent_adu, child_adu, arg_graph):
