@@ -46,7 +46,6 @@ class MatchingADUs():
             return self.embedding(speech, adu)
 
         else:
-            ## need to fix
             self.embedding = sister.MeanEmbedding(lang="en")
 
             return list(self.embedding(adu))
@@ -81,6 +80,7 @@ class MatchingADUs():
             speech = new_speech["speeches"][speech_id]["content"]
             adu_dict["embedding"] = self.get_embedding(speech, adu)
 
+        return new_speech
 
         matching_results = []
 

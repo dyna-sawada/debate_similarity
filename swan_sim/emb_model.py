@@ -88,7 +88,7 @@ class RobertaEmbedding():
         ## concat (subtraction)
         embed_adu = embed_speech[0][end_index] - embed_speech[0][start_index]
 
-        return embed_adu.numpy()[0].tolist()
+        return embed_adu.numpy().tolist()
 
 
     def __call__(self, speech, adu):
