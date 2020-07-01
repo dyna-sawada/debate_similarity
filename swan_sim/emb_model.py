@@ -8,54 +8,88 @@ from transformers import RobertaModel, RobertaTokenizer
 class RobertaEmbedding():
     def __init__(self):
         self.tok = RobertaTokenizer.from_pretrained("roberta-base")
-        self.special_tokens = ["[Mstart]", "[Mend]"]
-        self.tok.add_tokens(self.special_tokens)
+
         self.model = RobertaModel.from_pretrained("roberta-base")
-        self.model.resize_token_embeddings(len(self.tok))
+
         self.MAX_SEQ_LEN = 256
 
 
-    def roberta_encode(self, speech):
-        # tokenize & encode
-        speech_tokens = [self.tok.tokenize(speech)]
+    def roberta_encode(self, speech, string):
+        ## tokenize & encode
+        speech_tokens = self.tok.tokenize(speech)
 
-        speech_ids = [self.tok.encode(t,
+        if string == "speech":
+            speech_ids = self.tok.encode(speech_tokens,
                                     add_special_tokens=True,
                                     max_length=self.MAX_SEQ_LEN,
-                                    pad_to_max_length=self.MAX_SEQ_LEN) for t in speech_tokens]
+                                    )
+        else:
+            speech_ids = self.tok.encode(speech_tokens)
 
         return speech_ids
 
 
-    def get_special_tokens_index_list(self, speech_ids):
-        Mstart_list = []
-        Mend_list = []
-        for index, sentence_id in enumerate(encode):
-            if sentence_id == self.special_tokens[0]:
-                Mstart_list.append(index)
-            elif sentence_id == self.special_tokens[1]:
-                Mend_list.append(index)
-
-        assert len(Mstart_list) == len(Mend_list), "must be same len."
-
-        return Mstart_list, Mend_list
+    def get_index_multi(self, l, x):
+        return [i for i, _x in enumerate(l) if _x == x]
 
 
-    def roberta_embedding(self, speech):
-        # get embeddings
-        speech_ids = self.roberta_encode(speech)
+    def get_start_end_index(self, speech_ids, adu_ids):
+        """
+        input : speech_ids,  adu_ids
+        out : start_index, end_index
+        """
+
+        index_front = []
+        index_back = []
+
+        for i, adu_id in enumerate(adu_ids[1:]):
+            index_on_sp_ids_list = self.get_index_multi(speech_ids, adu_id)
+            if len(index_on_sp_ids) == 1:
+                index_on_adu_ids = i
+                break
+
+            index_front = index_on_sp_ids_list
+
+            ## whether 2 tokens are continuous
+            count = 0
+            for f in index_front:
+                for b in index_back:
+                    if b > f:
+                        continue
+                    if b + 1 == f:
+                        count += 1
+
+            if count == 1:
+                index_on_adu_ids = i
+                break
+
+            index_back = index_on_sp_ids_list
+
+
+        start_index = index_on_sp_ids_list[0] - (index_on_adu_ids + 1)
+        end_index = index_on_sp_ids_list[0] + (len(adu_ids[1:]) - index_on_adu_ids - 1)
+
+        return start_index, end_index
+
+
+    def roberta_embedding(self, speech, adu):
+        ## get embeddings
+        speech_ids = self.roberta_encode(speech, "speech")
+        adu_ids = self.roberta_encode(adu, "adu")
+
+        start_index, end_index = self.get_start_end_index(speech_ids, adu_ids)
+
         input_roberta = torch.tensor(input_roberta)
-
-        Msart_list, Mend_list = self.get_special_tokens_index_list(speech_ids)
 
         with torch.no_grad():
             roberta_out = self.model(input_roberta)
         embed_speech, _ = roberta_out
 
-        embed_adu = torch.stack([embed_speech[0][Mend_list[i]] - embed_speech[0][Msart_list[i]] for i in range(len(s1_list))])
+        ## concat (subtraction)
+        embed_adu = embed_speech[0][end_index] - embed_speech[0][start_index]
 
-        return embed_adu.numpy()
+        return embed_adu.numpy()[0].tolist()
 
 
-    def __call__(self, speech):
-        return self.roberta_embedding(speech)
+    def __call__(self, speech, adu):
+        return self.roberta_embedding(speech, adu)
