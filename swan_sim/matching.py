@@ -12,7 +12,7 @@ import emb_model
 class MatchingADUs():
     def __init__(self, args):
         """
-        args : NAME of embedding model (sister or roberta)
+        args : NAME of embedding model (only "sister" or "roberta" is available.)
         """
         self.args = args
 
@@ -31,77 +31,66 @@ class MatchingADUs():
             return float(numerator) / denominator
 
 
-    def get_embedding(self, adu):
+    def get_embedding(self, speech, adu):
         """
         Args:
-    	adu (str): ADUの内容
+    	speech (str): speech全体
+        adu (str) : ADU内容
         Returns:
-    	embedding (list of float): ADUのEmbedding
+    	embedding (list of float): ADUのEmbeddings
         """
 
         if self.args == "roberta":
             self.embedding = emb_model.RobertaEmbedding()
+
+            return self.embedding(speech, adu)
+
         else:
+            ## need to fix
             self.embedding = sister.MeanEmbedding(lang="en")
-            adu = re.sub(r'[,.!?:;"]', '', adu).lower()
 
-        return list(self.embedding(adu))
+            return list(self.embedding(adu))
 
 
-    def get_matching_pair(self, parent_adu, child_adu, arg_graph):
+
+    def calcuate_matching_results(self, new_speech, arg_graph):
         """
         Args:
-        parent_adu (str): 親となるADUの内容
-        child_adu (str): 子となるADUの内容
-        arg_graph (dict): マッチング対象のGraph（dictionaryの中身は以下）
+        new_speech (dict): 新しく入力されたスピーチ
+        arg_graph (dict): マッチング元のGraph
         Returns:
     	matching_results (list of matching result): 類似度が高い順番にソートされた結果
     		[
-    			(rel_id, from_adu_id, to_adu_id, similarity_score),
-    			(rel_id, from_adu_id, to_adu_id, similarity_score),
+    			(adu_id of new_speech, adu_id of arg_graph, similarity_score),
+    			(adu_id of new_speech, adu_id of arg_graph, similarity_score),
     			...
     		]
         """
-        parent_emb = self.get_embedding(parent_adu)
-        child_emb = self.get_embedding(child_adu)
+
+        ## calcuate embedding on arg_graph
+        for adu_dict in arg_graph["adus"].values():
+            speech_id = adu_dict["speech_id"]
+            adu = adu_dict["content"]
+            speech = arg_graph["speeches"][speech_id]["content"]
+            adu_dict["embedding"] = self.get_embedding(speech, adu)
+
+        ## calcuate embedding on new_speech
+        for adu_dict in new_speech["adus"].values():
+            speech_id = adu_dict["speech_id"]
+            adu = adu_dict["content"]
+            speech = new_speech["speeches"][speech_id]["content"]
+            adu_dict["embedding"] = self.get_embedding(speech, adu)
+
 
         matching_results = []
 
-        ## arg_graph["relations"] => [dict1, dict2, ...]
-        for relation_dict in arg_graph["relations"]:
-            ## get 2ADU info
-            rel_id = relation_dict["rel_id"]
-            from_adu_id = relation_dict["from_adu_id"]
-            to_adu_id = relation_dict["to_adu_id"]
-            ## set up embeddings from DB
-            parent_emb_db = arg_graph["nodes"][from_adu_id]["embedding"]
-            child_emb_db = arg_graph["nodes"][to_adu_id]["embedding"]
+        for ns_adu_id in new_speech["adus"]:
+            ns_embedding = new_speech["adus"][ns_adu_id]["embedding"]
 
-            ## calcuate similarity
-            similarity_parent = self.cosine_similarity(parent_emb, parent_emb_db)
-            similarity_child = self.cosine_similarity(child_emb, child_emb_db)
+            for ag_adu_id in arg_graph["adus"]:
+                ag_embedding = arg_graph["adus"][ag_adu_id]["embedding"]
 
-            similarity_score = similarity_parent * similarity_child
+                similarity_score = self.cosine_similarity(ns_embedding, ag_embedding)
+                matching_results.append((ns_adu_id, ag_adu_id, similarity_score))
 
-            matching_results.append((rel_id, from_adu_id, to_adu_id, similarity_score))
-
-        sort_score = lambda val : val[3]
-
-        return sorted(matching_results, key=sort_score, reverse=True)
-
-
-
-"""
-
-json_open = open('./data_Swan/arg_graph_sample.json', 'r')
-arg_graphT = json.load(json_open)
-
-Matchclass = MatchingADUs()
-results = Matchclass.get_matching_pair("Homework should not be abolished.", "We need to study.", arg_graphT)
-print(results)
-
-
->>>Loading model...
-   [('156', '378', '379', 0.004708969948341021), ('44', '297', '296', 0.003827086123552584), ...
-
-"""
+        return sorted(matching_results, key=lambda val : val[2], reverse=True)

@@ -44,7 +44,7 @@ class RobertaEmbedding():
 
         for i, adu_id in enumerate(adu_ids[1:]):
             index_on_sp_ids_list = self.get_index_multi(speech_ids, adu_id)
-            if len(index_on_sp_ids) == 1:
+            if len(index_on_sp_ids_list) == 1:
                 index_on_adu_ids = i
                 break
 
@@ -79,7 +79,7 @@ class RobertaEmbedding():
 
         start_index, end_index = self.get_start_end_index(speech_ids, adu_ids)
 
-        input_roberta = torch.tensor(input_roberta)
+        input_roberta = torch.tensor([speech_ids])
 
         with torch.no_grad():
             roberta_out = self.model(input_roberta)
