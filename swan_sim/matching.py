@@ -77,18 +77,48 @@ class MatchingADUs():
         """
 
         ## calcuate embedding on speech_dict
-        arg_graph = self.set_embedding_on_dict(arg_graph)
+        if "embedding" not in new_speech["adus"]["108"].keys():
+            arg_graph = self.set_embedding_on_dict(arg_graph)
         new_speech = self.set_embedding_on_dict(new_speech)
 
         matching_results = []
 
         for ns_adu_id in new_speech["adus"]:
-            ns_embedding = new_speech["adus"][ns_adu_id]["embedding"]
+            ns_adu_emb = new_speech["adus"][ns_adu_id]["embedding"]
 
             for ag_adu_id in arg_graph["adus"]:
-                ag_embedding = arg_graph["adus"][ag_adu_id]["embedding"]
+                ag_adu_emb = arg_graph["adus"][ag_adu_id]["embedding"]
 
-                similarity_score = self.cosine_similarity(ns_embedding, ag_embedding)
+                similarity_score = self.cosine_similarity(ns_adu_emb, ag_adu_emb)
                 matching_results.append((ns_adu_id, ag_adu_id, similarity_score))
 
         return sorted(matching_results, key=lambda val : val[2], reverse=True)
+
+
+    def get_most_similar_node(self, ns_adu_id, ns_adu_emb, arg_graph, history):
+        sims = []
+        aligned_nodes = list(map(lambda x: x[1], history))
+
+        for ag_adu_id in arg_graph["adus"]:
+            if ag_adu_id not in aligned_nodes:
+                ag_adu_emb = arg_graph["adus"][ag_adu_id]["embedding"]
+
+                similarity_score = self.cosine_similarity(ns_adu_emb, ag_adu_emb)
+                sims.append((ns_adu_id, ag_adu_id, similarity_score))
+
+        return max(sims, key=lambda x: x[2])
+
+
+    def align(self, new_speech, arg_graph):
+        history = []
+
+        if "embedding" not in new_speech["adus"]["108"].keys():
+            arg_graph = self.set_embedding_on_dict(arg_graph)
+        new_speech = self.set_embedding_on_dict(new_speech)
+
+        for ns_adu_id in new_speech["adus"]:
+            ns_adu_emb = new_speech["adus"][ns_adu_id]["embedding"]
+            msn = self.get_most_similar_node(ns_adu_id, ns_adu_emb, arg_graph, history)
+            history += [msn]
+
+        return history
