@@ -15,6 +15,10 @@ class MatchingADUs():
         args : NAME of embedding model (only "sister" or "roberta" is available.)
         """
         self.args = args
+        if self.args == "roberta":
+            self.embedding = emb_model.RobertaEmbedding()
+        else:
+            self.embedding = sister.MeanEmbedding(lang="en")
 
 
     def cosine_similarity(self, vec1, vec2):
@@ -41,13 +45,9 @@ class MatchingADUs():
         """
 
         if self.args == "roberta":
-            self.embedding = emb_model.RobertaEmbedding()
-
             return self.embedding(speech, adu)
 
         else:
-            self.embedding = sister.MeanEmbedding(lang="en")
-
             return list(self.embedding(adu))
 
 
@@ -79,8 +79,6 @@ class MatchingADUs():
             adu = adu_dict["content"]
             speech = new_speech["speeches"][speech_id]["content"]
             adu_dict["embedding"] = self.get_embedding(speech, adu)
-
-        return new_speech
 
         matching_results = []
 
