@@ -51,6 +51,16 @@ class MatchingADUs():
             return list(self.embedding(adu))
 
 
+    def set_embedding_on_dict(self, speech_dict):
+        ## calcuate embedding on arg_graph or new_speech
+        for adu_dict in speech_dict["adus"].values():
+            speech_id = adu_dict["speech_id"]
+            adu = adu_dict["content"]
+            speech = speech_dict["speeches"][speech_id]["content"]
+            adu_dict["embedding"] = self.get_embedding(speech, adu)
+
+        return speech_dict
+
 
     def calcuate_matching_results(self, new_speech, arg_graph):
         """
@@ -66,19 +76,9 @@ class MatchingADUs():
     		]
         """
 
-        ## calcuate embedding on arg_graph
-        for adu_dict in arg_graph["adus"].values():
-            speech_id = adu_dict["speech_id"]
-            adu = adu_dict["content"]
-            speech = arg_graph["speeches"][speech_id]["content"]
-            adu_dict["embedding"] = self.get_embedding(speech, adu)
-
-        ## calcuate embedding on new_speech
-        for adu_dict in new_speech["adus"].values():
-            speech_id = adu_dict["speech_id"]
-            adu = adu_dict["content"]
-            speech = new_speech["speeches"][speech_id]["content"]
-            adu_dict["embedding"] = self.get_embedding(speech, adu)
+        ## calcuate embedding on speech_dict
+        arg_graph = self.set_embedding_on_dict(arg_graph)
+        new_speech = self.set_embedding_on_dict(new_speech)
 
         matching_results = []
 
