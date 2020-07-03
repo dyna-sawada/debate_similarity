@@ -22,7 +22,7 @@ class MatchingADUs():
 
 
     def cosine_similarity(self, vec1, vec2):
-
+        ## calcuate cosine_similarity
         numerator = sum([vec1[x]*vec2[x] for x in range(len(vec1))])
 
         sum1 = sum([vec1[x]**2 for x in range(len(vec1))])
@@ -38,10 +38,10 @@ class MatchingADUs():
     def get_embedding(self, speech, adu):
         """
         Args:
-    	speech (str): speech全体
-        adu (str) : ADU内容
+    	   speech (str): entire of speech
+           adu (str) : 1 ADU
         Returns:
-    	embedding (list of float): ADUのEmbeddings
+    	   embedding (list of float): embeddings of ADU
         """
 
         if self.args == "roberta":
@@ -52,7 +52,14 @@ class MatchingADUs():
 
 
     def set_embedding_on_dict(self, speech_dict):
+        """
         ## calcuate embedding on arg_graph or new_speech
+        Args:
+            speech_dict (dict): speech dictionary which has some infomationos about adus
+        Returns:
+            speech_dict (dict): speech dictionary added embedding (key & value) on each adu
+        """
+
         for adu_dict in speech_dict["adus"].values():
             speech_id = adu_dict["speech_id"]
             adu = adu_dict["content"]
@@ -65,15 +72,17 @@ class MatchingADUs():
     def calcuate_matching_results(self, new_speech, arg_graph):
         """
         Args:
-        new_speech (dict): 新しく入力されたスピーチ
-        arg_graph (dict): マッチング元のGraph
+            new_speech (dict): new typed speech
+            arg_graph (dict): matching source speeches
         Returns:
-    	matching_results (list of matching result): 類似度が高い順番にソートされた結果
-    		[
+            matching_results (list of matching result): results sorted by similarity
+              [
     			(adu_id of new_speech, adu_id of arg_graph, similarity_score),
     			(adu_id of new_speech, adu_id of arg_graph, similarity_score),
     			...
-    		]
+    		  ]
+
+        if you want greedy one to one matching, use 'align' function.
         """
 
         ## calcuate embedding on speech_dict
@@ -110,6 +119,21 @@ class MatchingADUs():
 
 
     def align(self, new_speech, arg_graph):
+        """
+        Args:
+            new_speech (dict): new typed speech
+            arg_graph (dict): matching source speeches
+        Returns:
+            history (list of matching result): only the one with the maximum score for each adu of new_speech
+    		  [
+    			(adu_1 of new_speech, adu_id of arg_graph, similarity_score,
+    			(adu_2 of new_speech, adu_id of arg_graph, similarity_score),
+    			...
+    		  ]
+
+        if you want every adus's similarity_score, use 'calcuate_matching_results' function.
+
+        """
         history = []
 
         if "embedding" not in new_speech["adus"]["108"].keys():
