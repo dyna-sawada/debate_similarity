@@ -33,51 +33,65 @@ class RobertaEmbedding():
         return [i for i, _x in enumerate(l) if _x == x]
 
 
-    def get_start_end_index(self, speech_ids, adu_ids):
+    def get_start_end_index(self, speech_ids, adu_ids_list):
         """
-        input : speech_ids,  adu_ids
-        out : start_index, end_index
+        Args:
+            speech_ids (list of int): encode of entire speech
+            adu_ids_list (list of int): encode of every adu on speech
+        Returns:
+            start_index_list (list of int): start_index of every adu on encode of entire speech
+            end_index_list (list of int): end_index of every adu on encode of entire speech
         """
 
-        index_front = []
-        index_back = []
+        start_index_list = []
+        end_index_list = []
 
-        for i, adu_id in enumerate(adu_ids[1:]):
-            index_on_sp_ids_list = self.get_index_multi(speech_ids, adu_id)
-            if len(index_on_sp_ids_list) == 1:
-                index_on_adu_ids = i
-                break
+        for adu_ids in adu_ids_list:
+            index_front = []
+            index_back = []
 
-            index_front = index_on_sp_ids_list
+            for i, adu_id in enumerate(adu_ids[1:]):
+                index_on_sp_ids_list = self.get_index_multi(speech_ids, adu_id)
+                if len(index_on_sp_ids_list) == 1:
+                    index_on_adu_ids = i
+                    break
 
-            ## whether 2 tokens are continuous
-            count = 0
-            for f in index_front:
-                for b in index_back:
-                    if b > f:
-                        continue
-                    if b + 1 == f:
-                        count += 1
+                index_front = index_on_sp_ids_list
 
-            if count == 1:
-                index_on_adu_ids = i
-                break
+                ## whether 2 tokens are continuous
+                count = 0
+                for f in index_front:
+                    for b in index_back:
+                        if b > f:
+                            continue
+                        if b + 1 == f:
+                            count += 1
 
-            index_back = index_on_sp_ids_list
+                if count == 1:
+                    index_on_adu_ids = i
+                    break
 
-
-        start_index = index_on_sp_ids_list[0] - (index_on_adu_ids + 1)
-        end_index = index_on_sp_ids_list[0] + (len(adu_ids[1:]) - index_on_adu_ids - 1)
-
-        return start_index, end_index
+                index_back = index_on_sp_ids_list
 
 
-    def roberta_embedding(self, speech, adu):
+            start_index = index_on_sp_ids_list[0] - (index_on_adu_ids + 1)
+            end_index = index_on_sp_ids_list[0] + (len(adu_ids[1:]) - index_on_adu_ids - 1)
+            start_index_list.append(start_index)
+            end_index_list.append(end_index)
+
+        return start_index_list, end_index_list
+
+
+    def roberta_embedding(self, speech, adu_contents):
         ## get embeddings
         speech_ids = self.roberta_encode(speech, "speech")
-        adu_ids = self.roberta_encode(adu, "adu")
 
-        start_index, end_index = self.get_start_end_index(speech_ids, adu_ids)
+        adu_ids_list = []
+        for adu_content in adu_contents:
+            adu_ids = self.roberta_encode(adu_content, "adu")
+            adu_ids_list.append(adu_ids)
+
+        start_index_list, end_index_list = self.get_start_end_index(speech_ids, adu_ids_list)
 
         input_roberta = torch.tensor([speech_ids])
 
@@ -85,11 +99,15 @@ class RobertaEmbedding():
             roberta_out = self.model(input_roberta)
         embed_speech, _ = roberta_out
 
-        ## concat (subtraction)
-        embed_adu = embed_speech[0][end_index] - embed_speech[0][start_index]
+        embed_adus = []
+        for i in range(len(start_index_list)):
+            ## concat (subtraction)
+            embed_adu = embed_speech[0][end_index_list[i]] - embed_speech[0][start_index_list[i]]
+            embed_adu.numpy().tolist()
+            embed_adus.append(embed_adu)
 
-        return embed_adu.numpy().tolist()
+        return embed_adus
 
 
-    def __call__(self, speech, adu):
-        return self.roberta_embedding(speech, adu)
+    def __call__(self, speech, adu_contents):
+        return self.roberta_embedding(speech, adu_contents)

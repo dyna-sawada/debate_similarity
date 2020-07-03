@@ -35,20 +35,29 @@ class MatchingADUs():
             return float(numerator) / denominator
 
 
-    def get_embedding(self, speech, adu):
+    def get_embedding(self, speech, adu_contents):
         """
         Args:
     	   speech (str): entire of speech
-           adu (str) : 1 ADU
+           adu_contents (list of str) : ["adu_1", "adu_2", ...]
         Returns:
     	   embedding (list of float): embeddings of ADU
+               [
+                   [adu_1 embedding],
+                   [adu_2 embedding],
+                   ...
+               ]
         """
 
         if self.args == "roberta":
-            return self.embedding(speech, adu)
+            return self.embedding(speech, adu_contents)
 
         else:
-            return list(self.embedding(adu))
+            adu_embeddings = []
+            for adu in adu_contents:
+                adu_embedding = list(self.embedding(adu))
+                adu_embeddings.append(adu_embedding)
+            return adu_embeddings
 
 
     def set_embedding_on_dict(self, speech_dict):
@@ -60,11 +69,23 @@ class MatchingADUs():
             speech_dict (dict): speech dictionary added embedding (key & value) on each adu
         """
 
-        for adu_dict in speech_dict["adus"].values():
-            speech_id = adu_dict["speech_id"]
-            adu = adu_dict["content"]
+        for speech_id in speech_dict["speeches"]:
+            adu_ids = []
+            adu_contents = []
+
+            if speech_id == "PM":
+                continue
+
+            for adu_id in speech_dict["adus"]:
+                if speech_dict["adus"][adu_id]["speech_id"] == speech_id:
+                    adu_ids.append(adu_id)
+                    adu_contents.append(speech_dict["adus"][adu_id]["content"])
+
             speech = speech_dict["speeches"][speech_id]["content"]
-            adu_dict["embedding"] = self.get_embedding(speech, adu)
+            # calculate embeddings & set on dictionary
+            adu_embeddings = self.get_embedding(speech, adu_contents)
+            for i in range(len(adu_ids)):
+                speech_dict["adus"][adu_ids[i]]["embedding"] = adu_embeddings[i]
 
         return speech_dict
 
@@ -86,7 +107,7 @@ class MatchingADUs():
         """
 
         ## calcuate embedding on speech_dict
-        if "embedding" not in new_speech["adus"]["108"].keys():
+        if "embedding" not in arg_graph["adus"]["108"].keys():
             arg_graph = self.set_embedding_on_dict(arg_graph)
         new_speech = self.set_embedding_on_dict(new_speech)
 
