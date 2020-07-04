@@ -43,6 +43,8 @@ class RobertaEmbedding():
         index_back = []
 
         for i, adu_id in enumerate(adu_ids[1:]):
+            where_id = 0
+
             index_on_sp_ids_list = self.get_index_multi(speech_ids, adu_id)
             if len(index_on_sp_ids_list) == 1:
                 index_on_adu_ids = i
@@ -58,6 +60,7 @@ class RobertaEmbedding():
                         continue
                     if b + 1 == f:
                         count += 1
+                        where_id = index_front.index(f)
 
             if count == 1:
                 index_on_adu_ids = i
@@ -66,8 +69,8 @@ class RobertaEmbedding():
             index_back = index_on_sp_ids_list
 
 
-        start_index = index_on_sp_ids_list[0] - (index_on_adu_ids + 1)
-        end_index = index_on_sp_ids_list[0] + (len(adu_ids[1:]) - index_on_adu_ids - 1)
+        start_index = index_on_sp_ids_list[where_id] - (index_on_adu_ids + 1)
+        end_index = index_on_sp_ids_list[where_id] + (len(adu_ids[1:]) - index_on_adu_ids - 1)
 
         return start_index, end_index
 
@@ -78,6 +81,7 @@ class RobertaEmbedding():
         adu_ids = self.roberta_encode(adu, "adu")
 
         start_index, end_index = self.get_start_end_index(speech_ids, adu_ids)
+        assert speech_ids[end_index] == adu_ids[-1], "you got miss match encodeID on adu --> {}".format(adu)
 
         input_roberta = torch.tensor([speech_ids])
 
