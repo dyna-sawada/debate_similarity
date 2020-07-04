@@ -157,7 +157,7 @@ class MatchingADUs():
         """
         history = []
 
-        if "embedding" not in new_speech["adus"]["108"].keys():
+        if "embedding" not in arg_graph["adus"]["108"].keys():
             arg_graph = self.set_embedding_on_dict(arg_graph)
         new_speech = self.set_embedding_on_dict(new_speech)
 
