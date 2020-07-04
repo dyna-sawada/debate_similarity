@@ -51,6 +51,8 @@ class RobertaEmbedding():
             index_back = []
 
             for i, adu_id in enumerate(adu_ids[1:]):
+                where_id = 0
+
                 index_on_sp_ids_list = self.get_index_multi(speech_ids, adu_id)
                 if len(index_on_sp_ids_list) == 1:
                     index_on_adu_ids = i
@@ -66,6 +68,7 @@ class RobertaEmbedding():
                             continue
                         if b + 1 == f:
                             count += 1
+                            where_id = index_front.index(f)
 
                 if count == 1:
                     index_on_adu_ids = i
@@ -74,8 +77,8 @@ class RobertaEmbedding():
                 index_back = index_on_sp_ids_list
 
 
-            start_index = index_on_sp_ids_list[0] - (index_on_adu_ids + 1)
-            end_index = index_on_sp_ids_list[0] + (len(adu_ids[1:]) - index_on_adu_ids - 1)
+            start_index = index_on_sp_ids_list[where_id] - (index_on_adu_ids + 1)
+            end_index = index_on_sp_ids_list[where_id] + (len(adu_ids[1:]) - index_on_adu_ids - 1)
             start_index_list.append(start_index)
             end_index_list.append(end_index)
 
