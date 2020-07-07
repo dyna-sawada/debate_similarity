@@ -1,0 +1,33 @@
+{
+    "speeches": {
+        "ns1": {
+            "content": "Having homework also allows students to really fix in their heads work they have done in school. Doing tasks linked to recent lessons helps students strengthen their understanding and become more confident in using new knowledge and skills. For younger children this could be practising reading or multiplication tables. For older ones it might be writing up an experiment, revising for a test, reading in preparation for the next topic, etc."
+        }
+    },
+    "adus": {
+        "na1": {
+            "speech_id": "ns1",
+            "start": 0,
+            "end": 95,
+            "content": "Having homework also allows students to really fix in their heads work they have done in school"
+        },
+        "na2": {
+            "speech_id": "ns1",
+            "start": 97,
+            "end": 239,
+            "content": "Doing tasks linked to recent lessons helps students strengthen their understanding and become more confident in using new knowledge and skills"
+        },
+        "na3": {
+            "speech_id": "ns1",
+            "start": 241,
+            "end": 319,
+            "content": "For younger children this could be practising reading or multiplication tables"
+        },
+        "na4": {
+            "speech_id": "ns1",
+            "start": 321,
+            "end": 441,
+            "content": "For older ones it might be writing up an experiment, revising for a test, reading in preparation for the next topic, etc"
+        }
+    }
+}
