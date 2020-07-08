@@ -21,10 +21,13 @@ class RobertaEmbedding():
         if string == "speech":
             speech_ids = self.tok.encode(speech_tokens,
                                     add_special_tokens=True,
-                                    max_length=self.MAX_SEQ_LEN,
+                                    max_length=self.MAX_SEQ_LEN
                                     )
         else:
-            speech_ids = self.tok.encode(speech_tokens)
+            speech_ids = self.tok.encode(speech_tokens,
+                                    add_special_tokens=False,
+                                    max_length=self.MAX_SEQ_LEN
+                                    )
 
         return speech_ids
 
